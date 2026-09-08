@@ -1,0 +1,20 @@
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import type { Course } from './course';
+
+export interface Attempt { cardId: string; correct: boolean; answer: string; at: string; mode: string }
+interface State {
+  courses: Course[]; activeId: string | null; attempts: Record<string, Attempt[]>;
+  saveCourse: (course: Course) => void; selectCourse: (id: string) => void;
+  record: (attempt: Omit<Attempt, 'at'>) => void;
+}
+export const useCourse = create<State>()(persist((set, get) => ({
+  courses: [], activeId: null, attempts: {},
+  saveCourse: course => set(s => ({ courses: [...s.courses, course], activeId: course.id })),
+  selectCourse: activeId => set({ activeId }),
+  record: attempt => {
+    const id = get().activeId;
+    if (id) set(s => ({ attempts: { ...s.attempts, [id]: [...(s.attempts[id] || []), { ...attempt, at: new Date().toISOString() }].slice(-5000) } }));
+  },
+}), { name: 'english-pdf-courses-v1', storage: createJSONStorage(() => localStorage), version: 1 }));
+export function useActiveCourse() { return useCourse(s => s.courses.find(c => c.id === s.activeId)); }
