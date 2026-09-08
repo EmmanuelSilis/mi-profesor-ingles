@@ -1,7 +1,7 @@
-export interface SourcePage { page: number; text: string; method: 'text' | 'ocr'; confidence?: number; uncertainLines?: string[] }
+export interface SourcePage { sourceName?: string; page: number; text: string; method: 'text' | 'ocr'; confidence?: number; uncertainLines?: string[] }
 export interface Unit { title: string; topics: string[]; vocabulary: string[]; grammar: string[]; page: number }
 export interface StudyCard { id: string; type: 'completar_oracion'; front: string; back: string; hint: string; page: number; source: string }
-export interface Course { id: string; fileName: string; pages: SourcePage[]; units: Unit[]; cards: StudyCard[]; createdAt: string }
+export interface Course { selections?: { courseId: string; pages: number[] }[]; id: string; fileName: string; pages: SourcePage[]; units: Unit[]; cards: StudyCard[]; createdAt: string }
 
 // Preserve line boundaries and accents. Do not guess damaged words.
 export function cleanText(text: string): string {

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Course } from './course';
 
-export interface Attempt { cardId: string; correct: boolean; answer: string; at: string; mode: string }
+export interface Attempt { cardId: string; correct: boolean; answer: string; at: string; mode: string; prompt?: string; expected?: string; explanation?: string }
 interface State {
   courses: Course[]; activeId: string | null; attempts: Record<string, Attempt[]>;
   saveCourse: (course: Course) => void; selectCourse: (id: string) => void;

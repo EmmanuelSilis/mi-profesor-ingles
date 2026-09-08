@@ -53,3 +53,15 @@ export async function extractPdfContent(file: File, progress: (p: ExtractionProg
     try { await worker?.terminate(); } finally { await task.destroy(); }
   }
 }
+
+export async function extractImageContent(file: File) {
+  if (file.size > 40 * 1024 * 1024) throw new Error('El límite es 40 MB por imagen.');
+  const worker = await createWorker('eng+spa');
+  try {
+    const result = await worker.recognize(file, {}, { text: true, blocks: true });
+    const text = cleanText(result.data.text);
+    if (!text) throw new Error('No se encontró texto legible en la foto.');
+    const uncertainLines = (result.data.blocks || []).flatMap(b=>b.paragraphs.flatMap(p=>p.lines)).filter(l=>l.confidence<80||l.words.some(w=>/[A-Za-z]{2}/.test(w.text)&&w.confidence<65)).map(l=>l.text);
+    return { sourcePages: [{page:1,text,method:'ocr' as const,confidence:result.data.confidence,uncertainLines}] };
+  } finally { await worker.terminate(); }
+}
