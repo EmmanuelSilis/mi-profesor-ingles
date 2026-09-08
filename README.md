@@ -1,4 +1,4 @@
-# Mi Profesor de Inglés 1.5
+# Mi Profesor de Inglés 1.6
 
 Aplicación React para estudiar el contenido de PDF propios. No necesita claves de API para esta versión.
 
@@ -99,3 +99,15 @@ Pulsa «Practicar esta lección» para añadirla a los cursos y entrar en los ej
 La biblioteca está empaquetada con la aplicación; sigue necesitando que la aplicación local esté abierta. El progreso se guarda en el mismo navegador. La lectura en voz alta y el reconocimiento de voz mantienen las limitaciones ya descritas.
 
 Validación de 1.5: 19 pruebas automáticas (incluidas las 48 respuestas de la biblioteca), TypeScript y compilación de producción. Comprobada en el navegador la biblioteca, la entrada a to be sin cargar archivos y la explicación de I am frente a I is.
+
+## Biblioteca privada (1.6)
+
+Mis lecciones permite guardar PDF/fotos originales en IndexedDB, nombrar lecciones y consultar el contenido revisado. Mi cuenta conecta con el proyecto Supabase dedicado a esta aplicación. La clave del cliente es publicable; no incluye credenciales administrativas.
+
+La sincronización es explícita: pulsar «Sincronizar lecciones y avances» al terminar y en el segundo dispositivo para descargar los cambios. Las lecciones pendientes se envían por ID; los intentos se combinan sin duplicados. Ediciones simultáneas del nombre/contenido de una misma lección usan la última sincronización. No hay eliminación remota en esta versión.
+
+Cada cuenta usa una biblioteca local separada. Las lecciones de invitado solo se copian al pulsar la opción de recuperación. Los originales de importaciones anteriores deben volver a subirse si nunca se conservaron. Los archivos nuevos permanecen en este navegador hasta que se sincronizan con una cuenta.
+
+`supabase/schema.sql` documenta las tablas y políticas iniciales, ya aplicadas al proyecto dedicado. No ejecutar otra vez sobre el mismo proyecto: crea políticas con nombres únicos. El depósito english-originals es privado, máximo 40 MB por archivo, PDF/JPEG/PNG. Filas y archivos se restringen por auth.uid().
+
+La autenticación usa correo y contraseña con confirmación de correo. El servicio de correo predeterminado de Supabase restringe destinatarios a miembros de la organización; para admitir otros usuarios se necesita configurar SMTP. El URL de retorno de producción es https://mi-profesor-ingles.vercel.app. No se ha desactivado la confirmación de correo.

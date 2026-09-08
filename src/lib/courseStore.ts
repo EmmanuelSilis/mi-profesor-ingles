@@ -4,13 +4,13 @@ import type { Course } from './course';
 
 export interface Attempt { cardId: string; correct: boolean; answer: string; at: string; mode: string; prompt?: string; expected?: string; explanation?: string }
 interface State {
-  courses: Course[]; activeId: string | null; attempts: Record<string, Attempt[]>;
+  dirty: string[]; courses: Course[]; activeId: string | null; attempts: Record<string, Attempt[]>;
   saveCourse: (course: Course) => void; selectCourse: (id: string) => void;
   record: (attempt: Omit<Attempt, 'at'>) => void;
 }
 export const useCourse = create<State>()(persist((set, get) => ({
-  courses: [], activeId: null, attempts: {},
-  saveCourse: course => set(s => ({ courses: [...s.courses.filter(c => c.id !== course.id), course], activeId: course.id })),
+  dirty: [], courses: [], activeId: null, attempts: {},
+  saveCourse: course => set(s => ({ dirty: [...new Set([...s.dirty, course.id])], courses: [...s.courses.filter(c => c.id !== course.id), course], activeId: course.id })),
   selectCourse: activeId => set({ activeId }),
   record: attempt => {
     const id = get().activeId;
