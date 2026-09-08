@@ -10,7 +10,7 @@ interface State {
 }
 export const useCourse = create<State>()(persist((set, get) => ({
   courses: [], activeId: null, attempts: {},
-  saveCourse: course => set(s => ({ courses: [...s.courses, course], activeId: course.id })),
+  saveCourse: course => set(s => ({ courses: [...s.courses.filter(c => c.id !== course.id), course], activeId: course.id })),
   selectCourse: activeId => set({ activeId }),
   record: attempt => {
     const id = get().activeId;

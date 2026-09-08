@@ -307,7 +307,7 @@ export default function Flashcards({ cards }: { cards: Flashcard[] }) {
             Flashcards
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Tarjetas interactivas basadas en el contenido del PDF.
+            Tarjetas interactivas del curso seleccionado.
           </p>
         </div>
       </div>

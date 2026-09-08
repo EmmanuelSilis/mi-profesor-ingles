@@ -1,10 +1,12 @@
 import { grammarExercises, gradeGrammar } from './grammar.ts';
 import type { Course } from './course';
-export interface WritingExercise { id: string; prompt: string; hint: string; example: string; pronoun: 'he' | 'she'; kind: 'identity' | 'sentence' | 'grammar'; topic?: string; grammarPrefix?: string; alternatives: string[]; source: string; context: string }
+export interface WritingExercise { id: string; prompt: string; hint: string; example: string; pronoun: 'he' | 'she'; kind: 'identity' | 'sentence' | 'grammar' | 'basic'; topic?: string; grammarPrefix?: string; alternatives: string[]; source: string; context: string }
 export interface Grade { correct: boolean; explanation: string; example: string }
 const normalize = (s: string) => s.normalize('NFKC').replace(/[‘’]/g, "'").replace(/\b(he|she)'s\b/gi, '$1 is').toLowerCase().replace(/[.!?,]/g, '').replace(/\s+/g, ' ').trim();
 const roles: Record<string,string> = { father:'el padre', mother:'la madre', son:'el hijo', daughter:'la hija', brother:'el hermano', sister:'la hermana', husband:'el esposo', wife:'la esposa', uncle:'el tío', aunt:'la tía', grandfather:'el abuelo', grandmother:'la abuela' };
 export function writingExercises(course: Course, variant = 0): WritingExercise[] {
+  const basics: WritingExercise[] = (course.basicQuestions || []).map(q => ({id:`writing-${q.id}`,kind:'basic',pronoun:'he',topic:q.topic,prompt:q.prompt,hint:q.explanation,example:q.answers[0],alternatives:q.answers,source:q.example,context:`Biblioteca básica · ${q.topic}`}));
+  if (course.builtin) return basics;
   const exercises: WritingExercise[] = [];
   for (const card of course.cards) {
     const match = card.source.match(/^(He|She) is (.+)\.$/i);
@@ -21,9 +23,13 @@ export function writingExercises(course: Course, variant = 0): WritingExercise[]
     const female=pronoun==='she';
     exercises.push({id:`writing-${course.id}-${pronoun}-identity`,kind:'identity',pronoun,prompt:`Who is an American ${female ? 'female' : 'male'} singer?`, hint:`${female ? 'Female indica una mujer: she' : 'Male indica un hombre: he'}. Responde con ${pronoun} + is + un nombre, o con un nombre + is an American singer. Puedes elegir cualquier nombre.`,example:`${female ? 'She is Taylor Swift.' : 'He is Bruno Mars.'}`,alternatives:[],source:'',context:'Práctica adicional solicitada: estructura de respuesta. No se verifica la identidad, profesión ni nacionalidad del nombre elegido.'});
   }
-  return [...grammarExercises(course, variant), ...exercises];
+  return [...basics, ...grammarExercises(course, variant), ...exercises];
 }
 export function gradeWriting(exercise: WritingExercise, answer: string): Grade {
+  if (exercise.kind === 'basic') {
+    const correct=exercise.alternatives.some(a=>normalize(a)===normalize(answer));
+    return {correct,explanation:`${correct?'Correcto.':'Revisa tu respuesta.'} ${exercise.hint}`,example:exercise.example};
+  }
   if (exercise.kind === 'grammar') return gradeGrammar(exercise, answer);
   const value=normalize(answer), expected=exercise.pronoun;
   const fail=(explanation:string):Grade=>({correct:false,explanation,example:exercise.example});

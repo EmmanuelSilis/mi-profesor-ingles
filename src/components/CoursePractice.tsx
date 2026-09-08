@@ -29,7 +29,9 @@ export default function CoursePractice({ course, mode }: { course: Course; mode:
   const check = (value = answer) => {
     if (feedback !== null || !value.trim()) return;
     const expected = mode === 'escuchar' || mode === 'pronunciacion' ? card.source : card.back;
-    const correct = normalizeAnswer(value) === normalizeAnswer(expected);
+    const basicQuestion=course.basicQuestions?.find(q=>q.id===card.id);
+    const accepted=mode === 'escuchar' || mode === 'pronunciacion' ? [expected] : basicQuestion?.answers || [expected];
+    const correct = accepted.some(a=>normalizeAnswer(value) === normalizeAnswer(a));
     try { record({ cardId: card.id, correct, answer: value, mode }); setFeedback(correct); if (correct) setScore(s => s + 1); }
     catch { setError('No se pudo guardar tu respuesta en este navegador.'); }
   };
@@ -57,17 +59,17 @@ export default function CoursePractice({ course, mode }: { course: Course; mode:
   if (!card) return <p>No hay frases utilizables. Revisa el texto importado.</p>;
   if (finished) return <section className="panel"><h1 className="text-xl font-bold">Examen terminado</h1><p className="my-4">{score} de {cards.length} respuestas correctas.</p><button className="action" onClick={() => { setIndex(0); setScore(0); setFinished(false); setFeedback(null); setAnswer(''); }}>Repetir examen</button></section>;
   return <section className="panel space-y-5">
-    <h1 className="text-2xl font-bold">{({ escuchar: 'Escuchar y escribir', pronunciacion: 'Practicar pronunciación', examen: 'Examen del PDF', escribir: 'Completar frases' } as Record<string,string>)[mode] || 'Practicar'}</h1>
+    <h1 className="text-2xl font-bold">{({ escuchar: 'Escuchar y escribir', pronunciacion: 'Practicar pronunciación', examen: 'Examen del curso', escribir: 'Preguntas de repaso' } as Record<string,string>)[mode] || 'Practicar'}</h1>
     <p className="text-sm">{index + 1} de {cards.length} · {card.hint}</p>
     {mode === 'pronunciacion' && <p className="text-sm">El reconocimiento compara las palabras transcritas, no califica tu acento. Tu navegador puede enviar audio a su proveedor de reconocimiento al activar el micrófono.</p>}
     {mode !== 'escuchar' && <p className="text-2xl leading-relaxed">{mode === 'pronunciacion' ? card.source : card.front}</p>}
     {(mode === 'escuchar' || mode === 'pronunciacion') && <button className="action" onClick={speak}>Escuchar frase</button>}
-    {mode === 'escribir' && <div className="space-y-2"><p>Reproduce la palabra del documento, no una respuesta libre.</p><button className="text-blue-700 underline" onClick={() => setShowHint(!showHint)}>Ver pista y contexto</button>{showHint && <p>Empieza por «{card.back[0]}» y tiene {card.back.length} caracteres. Frase del documento: {card.source}</p>}</div>}
+    {mode === 'escribir' && <div className="space-y-2"><p>{course.basicQuestions?.some(q=>q.id===card.id)?'Responde según la consigna de esta actividad.':'Reproduce la palabra del documento, no una respuesta libre.'}</p><button className="text-blue-700 underline" onClick={() => setShowHint(!showHint)}>Ver pista y contexto</button>{showHint && <p>Empieza por «{card.back[0]}» y tiene {card.back.length} caracteres. Frase del documento: {card.source}</p>}</div>}
     {mode === 'pronunciacion' ? <button className="action ml-2" disabled={listening || feedback !== null} onClick={startRecognition}>{listening ? 'Escuchando…' : 'Activar micrófono'}</button> : <form className="space-y-3" onSubmit={e => { e.preventDefault(); check(); }}>
-      <label className="block">{mode === 'escuchar' ? 'Escribe la frase que escuchas' : 'Escribe la palabra que falta'}<input autoComplete="off" className="block border rounded-lg p-3 w-full mt-2" value={answer} disabled={feedback !== null} onChange={e => setAnswer(e.target.value)} /></label>
+      <label className="block">{mode === 'escuchar' ? 'Escribe la frase que escuchas' : 'Tu respuesta'}<input autoComplete="off" className="block border rounded-lg p-3 w-full mt-2" value={answer} disabled={feedback !== null} onChange={e => setAnswer(e.target.value)} /></label>
       <button className="action" disabled={!answer.trim() || feedback !== null}>Comprobar</button>
     </form>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
-    {feedback !== null && <div role="status" className="space-y-3"><h2 className="font-bold">{feedback ? 'Correcto' : 'Necesita práctica'}</h2>{mode === 'pronunciacion' && <p>Se reconoció: {answer}</p>}<p>Texto de referencia: {card.source}</p><p>Palabra de la tarjeta: <strong>{card.back}</strong></p><p className="text-sm">La respuesta se comprueba con el texto de la página {card.page}.</p><button className="action" onClick={() => { window.speechSynthesis?.cancel(); if (mode === 'examen' && index === cards.length - 1) setFinished(true); else setIndex((index + 1) % cards.length); setFeedback(null); setAnswer(''); setError(''); setShowHint(false); }}>Continuar</button></div>}
+    {feedback !== null && <div role="status" className="space-y-3"><h2 className="font-bold">{feedback ? 'Correcto' : 'Necesita práctica'}</h2>{mode === 'pronunciacion' && <p>Se reconoció: {answer}</p>}<p>Texto de referencia: {card.source}</p><p>Respuesta de referencia: <strong>{card.back}</strong></p><p className="text-sm">La respuesta se comprueba con el texto de la página {card.page}.</p><button className="action" onClick={() => { window.speechSynthesis?.cancel(); if (mode === 'examen' && index === cards.length - 1) setFinished(true); else setIndex((index + 1) % cards.length); setFeedback(null); setAnswer(''); setError(''); setShowHint(false); }}>Continuar</button></div>}
   </section>;
 }

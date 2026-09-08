@@ -1,4 +1,4 @@
-# Mi Profesor de Inglés 1.4
+# Mi Profesor de Inglés 1.5
 
 Aplicación React para estudiar el contenido de PDF propios. No necesita claves de API para esta versión.
 
@@ -79,3 +79,23 @@ La evaluación es determinista y limitada a esos patrones. No comprueba hechos s
 - Las fotos y los PDF originales se usan temporalmente para OCR y revisión. Se guarda su texto y el curso en el navegador; no se almacenan los archivos binarios como respaldo. Conserva tus originales.
 
 Validación local: 15 pruebas automatizadas, TypeScript y build de producción. Probada carga múltiple con las dos fotos de ejemplo, creación de repaso con páginas de las lecciones 9/10, persistencia tras recarga, filtros por tema y corrección de was/were en el navegador.
+
+
+## Biblioteca básica incluida (1.5)
+
+La pantalla inicial «Lecciones básicas» está incluida en el código y no necesita importar archivos ni llamar a una API. Ofrece ocho lecciones con explicación en español, ejemplos traducidos y seis ejercicios por lección (48 en total):
+
+1. To be: am/is/are, negación, preguntas y contracciones.
+2. Presente simple: hábitos, tercera persona, do/does; contraste breve con el presente continuo.
+3. Greetings: saludos, despedidas y cortesía.
+4. Introduce yourself: nombre, edad, origen y ocupación.
+5. This/these/that/those: número y distancia.
+6. Numbers: 0–100 y ordinales básicos.
+7. Adjectives and opposites: posición, plural y opuestos comunes.
+8. Who/what/which: personas, información y elección entre opciones.
+
+Pulsa «Practicar esta lección» para añadirla a los cursos y entrar en los ejercicios. La misma lección conserva su identificador y su progreso al volver a abrirla. Puedes combinar su página con páginas de PDF/fotos; las preguntas, respuestas admitidas y explicaciones se conservan en el repaso combinado. En las básicas y sus repasos, los ejercicios escritos usan las respuestas admitidas de cada consigna.
+
+La biblioteca está empaquetada con la aplicación; sigue necesitando que la aplicación local esté abierta. El progreso se guarda en el mismo navegador. La lectura en voz alta y el reconocimiento de voz mantienen las limitaciones ya descritas.
+
+Validación de 1.5: 19 pruebas automáticas (incluidas las 48 respuestas de la biblioteca), TypeScript y compilación de producción. Comprobada en el navegador la biblioteca, la entrada a to be sin cargar archivos y la explicación de I am frente a I is.
