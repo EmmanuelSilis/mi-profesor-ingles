@@ -1,7 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { writingExercises, gradeWriting } from '../src/lib/writing.ts';
-const course={id:'c',fileName:'lesson.pdf',pages:[],units:[],createdAt:'',cards:[{id:'1',source:'He is the father.',hint:'lesson.pdf · página 1'},{id:'2',source:"He is Ann's husband.",hint:'lesson.pdf · página 1'}]};
+test('possessive PDF produces its own transformations without unrelated singers',()=>{
+ const c={id:'poss',fileName:'lesson 13.pdf',cards:[],pages:[{page:1,text:'A) THIS IS THE DESK OF THOMAS.\nThese are the books of the students.\nThis is the bag of Anna.',uncertainLines:['This is the bag of Anna.']}]};
+ const items=writingExercises(c);
+ assert.equal(items.length,2);
+ assert.ok(items.every(e=>e.topic==='Posesivos' && e.context.includes('lesson 13.pdf')));
+ assert.equal(gradeWriting(items[0],"This is Thomas' desk.").correct,true);
+ assert.equal(gradeWriting(items[0],"This is Thomas’s desk.").correct,true);
+ assert.equal(gradeWriting(items[0],'This is Thomas desk.').correct,false);
+ assert.equal(gradeWriting(items[1],"These are the students' books.").correct,true);
+ assert.equal(gradeWriting(items[1],"These are the student's books.").correct,false);
+ assert.equal(writingExercises({...c,pages:[],cards:[]}).length,0);
+});
+const course={id:'c',fileName:'lesson.pdf',pages:[{page:1,text:'Who is an American singer?'}],units:[],createdAt:'',cards:[{id:'1',source:'He is the father.',hint:'lesson.pdf · página 1'},{id:'2',source:"He is Ann's husband.",hint:'lesson.pdf · página 1'}]};
 const exercises=writingExercises(course), female=exercises.find(e=>e.kind==='identity'&&e.pronoun==='she'), male=exercises.find(e=>e.kind==='identity'&&e.pronoun==='he');
 test('accepts variable names and contractions without checking celebrity facts',()=>{
  for (const answer of ['She is Adele.', "She's Taylor Swift.", 'Diana López is an American singer.', 'Lady Gaga is an American female singer.']) assert.equal(gradeWriting(female,answer).correct,true,answer);
@@ -25,6 +37,7 @@ test('PDF family translation keeps meaning, accepts possessive alternatives',()=
 });
 test('supplemental examples are marked separately and old courses need no migration',()=>{
  assert.match(female.context,/Práctica adicional/);
- assert.equal(writingExercises({...course,cards:[]}).length,2);
+ assert.equal(writingExercises({...course,pages:[],cards:[]}).length,0);
  assert.equal(gradeWriting(exercises[0],'He is the mother.').correct,false);
 });
+

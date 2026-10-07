@@ -1,5 +1,5 @@
 import { grammarExercises, gradeGrammar } from './grammar.ts';
-import type { Course } from './course';
+import { cleanText, type Course } from './course.ts';
 export interface WritingExercise { id: string; prompt: string; hint: string; example: string; pronoun: 'he' | 'she'; kind: 'identity' | 'sentence' | 'grammar' | 'basic'; topic?: string; grammarPrefix?: string; alternatives: string[]; source: string; context: string }
 export interface Grade { correct: boolean; explanation: string; example: string }
 const normalize = (s: string) => s.normalize('NFKC').replace(/[‘’]/g, "'").replace(/\b(he|she)'s\b/gi, '$1 is').toLowerCase().replace(/[.!?,]/g, '').replace(/\s+/g, ' ').trim();
@@ -8,6 +8,26 @@ export function writingExercises(course: Course, variant = 0): WritingExercise[]
   const basics: WritingExercise[] = (course.basicQuestions || []).map(q => ({id:`writing-${q.id}`,kind:'basic',pronoun:'he',topic:q.topic,prompt:q.prompt,hint:q.explanation,example:q.answers[0],alternatives:q.answers,source:q.example,context:`Biblioteca básica · ${q.topic}`}));
   if (course.builtin) return basics;
   const exercises: WritingExercise[] = [];
+  // Build transformations from reliable lines in this course, never a global fallback.
+  const seen = new Set<string>();
+  for (const page of course.pages) {
+    for (const raw of cleanText(page.text).split('\n')) {
+      if (page.uncertainLines?.some(line => cleanText(line).includes(raw))) continue;
+      const line = raw.replace(/^(?:[A-Z]|\d+)[.)]\s*/i, '').trim();
+      const match = line.match(/^(This is|That is|These are|Those are) the ([A-Za-z]+(?: [A-Za-z]+)?) of (the students|the teachers|the boys|the girls|[A-Za-z]+(?: and [A-Za-z]+)?)\.$/i);
+      if (!match || seen.has(line.toLowerCase())) continue;
+      seen.add(line.toLowerCase());
+      const [, start, object, owner] = match;
+      const plural = /^the /i.test(owner);
+      const possessive = plural ? `${owner}'` : `${owner}'s`;
+      const example = `${start} ${possessive} ${object}.`;
+      const alternatives = [example];
+      if (!plural && /s$/i.test(owner)) alternatives.push(`${start} ${owner}' ${object}.`);
+      exercises.push({id:`possessive-${course.id}-${page.page}-${exercises.length}`, kind:'basic', topic:'Posesivos', pronoun:'he',
+        prompt:`Reescribe con posesivo ('s o '): ${line}`, hint:"Coloca primero al dueño y después el objeto. Singular: nombre + 's. Plural terminado en s: añade solo '. En nombres singulares terminados en s se aceptan ambas formas.",
+        example, alternatives, source:line, context:`Transformación de ${page.sourceName || course.fileName} · página ${page.page}.`});
+    }
+  }
   for (const card of course.cards) {
     const match = card.source.match(/^(He|She) is (.+)\.$/i);
     if (!match) continue;
@@ -19,7 +39,8 @@ export function writingExercises(course: Course, variant = 0): WritingExercise[]
     const subject = pronoun === 'he' ? 'Él' : 'Ella';
     exercises.push({id:`writing-${card.id}`, kind:'sentence', pronoun, prompt:`Escribe en inglés: «${subject} es ${translation}». Usa un pronombre.`, hint:`${subject} → ${pronoun}. Con he/she, usa is.${possession ? " La posesión puede expresarse con nombre + 's + parentesco, o con the … of …." : ' Después escribe el parentesco con the.'}`, example:card.source, alternatives:[card.source, ...(possession ? [`${match[1]} is the ${possession[2]} of ${possession[1]}.`] : [])], source:card.source, context:`Adaptado de ${card.hint}`});
   }
-  for (const pronoun of ['she','he'] as const) {
+  const hasSingers = course.pages.some(p => /\bsinger\b/i.test(p.text)) || course.cards.some(c => /\bsinger\b/i.test(c.source));
+  for (const pronoun of hasSingers ? ['she','he'] as const : []) {
     const female=pronoun==='she';
     exercises.push({id:`writing-${course.id}-${pronoun}-identity`,kind:'identity',pronoun,prompt:`Who is an American ${female ? 'female' : 'male'} singer?`, hint:`${female ? 'Female indica una mujer: she' : 'Male indica un hombre: he'}. Responde con ${pronoun} + is + un nombre, o con un nombre + is an American singer. Puedes elegir cualquier nombre.`,example:`${female ? 'She is Taylor Swift.' : 'He is Bruno Mars.'}`,alternatives:[],source:'',context:'Práctica adicional solicitada: estructura de respuesta. No se verifica la identidad, profesión ni nacionalidad del nombre elegido.'});
   }
