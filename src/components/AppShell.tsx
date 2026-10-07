@@ -1,133 +1,34 @@
-import { useState, type ReactNode } from 'react';
-import { BookOpen, GraduationCap, Headphones, Mic, Pencil } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { BookOpen, GraduationCap, Headphones, Mic, Pencil, Library, Sun, Layers, Accessibility, Upload, ClipboardCheck, CircleAlert, ChartNoAxesCombined } from 'lucide-react';
 
-/* ─── Inline helpers ─────────────────────────────────────────────── */
-
-function cn(...classes: (string | false | undefined | null)[]) {
-  return classes.filter(Boolean).join(' ');
-}
-
-/* ─── Navigation items ────────────────────────────────────────────── */
-
-interface NavItem {
-  label: string;
-  icon: ReactNode;
-  id: string;
-}
-
-const navItems: NavItem[] = [
-  { label: 'Estudiar', icon: <BookOpen size={20} />, id: 'estudiar' },
-  { label: 'Flashcards', icon: <GraduationCap size={20} />, id: 'flashcards' },
-  { label: 'Escuchar', icon: <Headphones size={20} />, id: 'escuchar' },
-  { label: 'Pronunciación', icon: <Mic size={20} />, id: 'pronunciacion' },
-  { label: 'Escribir', icon: <Pencil size={20} />, id: 'escribir' },
+const practice = [
+  {id:'estudiar',label:'Estudiar',icon:BookOpen},
+  {id:'flashcards',label:'Flashcards',icon:GraduationCap},
+  {id:'escuchar',label:'Escuchar',icon:Headphones},
+  {id:'pronunciacion',label:'Pronunciación',icon:Mic},
+  {id:'escribir',label:'Escribir',icon:Pencil},
 ];
-
-/* ─── Props ────────────────────────────────────────────────────────── */
-
-interface AppShellProps {
-  /** Content rendered between header and bottom nav. */
-  children?: ReactNode;
-  /** Active navigation tab id. Defaults to 'estudiar'. */
-  activeTab?: string;
-  /** Called when a nav item is tapped. */
-  onTabChange?: (tabId: string) => void;
+const sections = [
+  {id:'hoy',label:'Mi clase de hoy',icon:Sun},
+  {id:'lecciones',label:'Mis lecciones',icon:Library},
+  {id:'basicos',label:'Lecciones básicas',icon:Layers},
+  {id:'cuerpo',label:'Partes del cuerpo',icon:Accessibility},
+  {id:'estudiar',label:'Importar / contenido',icon:Upload},
+  {id:'examen',label:'Examen',icon:ClipboardCheck},
+  {id:'errores',label:'Mis errores',icon:CircleAlert},
+  {id:'progreso',label:'Mi progreso',icon:ChartNoAxesCombined},
+];
+interface NavigationProps {activeTab:string; onTabChange:(id:string)=>void}
+export function MainNavigation({activeTab,onTabChange}:NavigationProps) {
+  return <nav className="section-nav" aria-label="Menú principal">{sections.map(({id,label,icon:Icon})=>
+    <button key={id} type="button" className="section-link" aria-pressed={activeTab===id} onClick={()=>onTabChange(id)}><Icon size={21} aria-hidden="true"/><span>{label}</span></button>
+  )}</nav>;
 }
-
-/* ─── Component ────────────────────────────────────────────────────── */
-
-export default function AppShell({
-  children,
-  activeTab = 'estudiar',
-  onTabChange,
-}: AppShellProps) {
-  const [currentTab, setCurrentTab] = useState(activeTab);
-
-  const handleTabClick = (tabId: string) => {
-    setCurrentTab(tabId);
-    onTabChange?.(tabId);
-  };
-
-  return (
-    <div
-      className="flex min-h-dvh flex-col"
-      style={{ backgroundColor: '#FFF7ED', color: '#431407' }}
-    >
-      {/* ─── Header ──────────────────────────────────────────────── */}
-      <header
-        className="flex items-center justify-between px-4 py-3 shadow-sm"
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #FED7AA',
-        }}
-      >
-        {/* App title */}
-        <div className="flex items-center gap-2">
-          <span
-            className="text-lg font-semibold tracking-tight"
-            style={{
-              fontFamily: "'Lexend', sans-serif",
-              color: '#431407',
-            }}
-          >
-            🇺🇸 MI PROFESOR DE INGLÉS
-          </span>
-        </div>
-
-        {/* Profesor avatar */}
-        <img
-          src="https://fzfncffjekempswnjilr.supabase.co/storage/v1/object/public/cosmos-code-sites/_assets/RiqbZ1da3yUDpcemQGlxfLkcCEo2/9eff8a36-a664-4c86-b3f2-cc80c2409b51/48f47440409837103a68a399.jpg"
-          alt="Profesor Emmanuel Silis"
-          title="Profesor Emmanuel Silis"
-          className="h-9 w-9 rounded-full object-cover ring-2 ring-amber-400"
-        />
-      </header>
-
-      {/* ─── Main content ────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-4 py-4">
-        {children}
-      </main>
-
-      {/* ─── Bottom navigation ───────────────────────────────────── */}
-      <nav
-        className="flex items-center justify-around border-t px-2 pb-2 pt-1"
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderTop: '1px solid #FED7AA',
-        }}
-      >
-        {navItems.map((item) => {
-          const isActive = (onTabChange ? activeTab : currentTab) === item.id;
-
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => handleTabClick(item.id)}
-              className={cn(
-                'flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
-              )}
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                color: isActive ? '#EA580C' : '#9A3412',
-                minHeight: 44,
-              }}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              <span
-                className={cn(
-                  'transition-transform duration-150',
-                  isActive ? 'scale-110' : 'scale-100',
-                )}
-              >
-                {item.icon}
-              </span>
-              <span className="leading-tight">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
-  );
+export function PracticeNavigation({activeTab,onTabChange}:NavigationProps) {
+  return <section className="practice-panel"><h2 className="practice-title">¿Cómo quieres practicar?</h2><nav className="practice-nav" aria-label="Herramientas de práctica">{practice.map(({id,label,icon:Icon})=>
+    <button key={id} type="button" className="practice-link" aria-pressed={activeTab===id} onClick={()=>onTabChange(id)}><span className="practice-icon"><Icon size={25} aria-hidden="true"/></span><span>{label}</span></button>
+  )}</nav></section>;
+}
+export default function AppShell({children}:{children?:ReactNode;activeTab?:string;onTabChange?:(id:string)=>void}) {
+  return <div className="app-shell"><header className="brand-header"><div className="brand-inner"><div className="brand-lockup"><span className="brand-icon"><BookOpen size={28} aria-hidden="true"/></span><div><p className="brand-title">Mi Profesor de Inglés</p><p className="brand-author">por Emmanuel Silis</p></div></div><img src="https://fzfncffjekempswnjilr.supabase.co/storage/v1/object/public/cosmos-code-sites/_assets/RiqbZ1da3yUDpcemQGlxfLkcCEo2/9eff8a36-a664-4c86-b3f2-cc80c2409b51/48f47440409837103a68a399.jpg" alt="Profesor Emmanuel Silis" className="brand-avatar"/></div></header><main className="app-main">{children}</main></div>;
 }
